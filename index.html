@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Country Flag Quiz</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="quiz-wrapper">
+            <h1>Country Flag Quiz</h1>
+            
+            <div id="start-screen" class="active">
+                <p>Test your knowledge of country flags around the world!</p>
+                <p>You'll be presented with 25 flags and need to choose the correct country from four options.</p>
+                <button id="start-btn">Start Quiz</button>
+            </div>
+
+            <div id="quiz-screen" class="hidden">
+                <div class="progress-container">
+                    <div class="progress-text">Question <span id="current-question">1</span>/25</div>
+                    <div class="progress-bar">
+                        <div id="progress-fill"></div>
+                    </div>
+                </div>
+
+                <div id="score-display">Score: <span id="score">0</span></div>
+
+                <div class="flag-container">
+                    <img id="flag-image" src="" alt="Country flag">
+                </div>
+                
+                <div class="question">
+                    <p>Which country does this flag belong to?</p>
+                </div>
+                
+                <div class="options-container" id="options-container">
+                    <!-- Options will be generated dynamically here -->
+                </div>
+            </div>
+
+            <div id="results-screen" class="hidden">
+                <h2>Quiz Results</h2>
+                <p>Your final score: <span id="final-score">0</span> out of 25</p>
+                <div id="feedback-message"></div>
+                <button id="restart-btn">Play Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="countries.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
