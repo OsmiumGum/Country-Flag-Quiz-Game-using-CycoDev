@@ -536,3 +536,32 @@ document.addEventListener('keydown', function(e) {
 
 // Initialize user manager
 const userManager = new UserManager();
+
+// Global functions for onclick handlers (backup method)
+function startGame25() {
+    console.log('startGame25 called');
+    const startScreen = document.getElementById('start-screen');
+    const quizScreen = document.getElementById('quiz-screen');
+    
+    if (startScreen && quizScreen) {
+        startScreen.classList.add('hidden');
+        quizScreen.classList.remove('hidden');
+        generateQuiz(false);
+    } else {
+        console.error('Could not find start-screen or quiz-screen elements');
+    }
+}
+
+function startGameUnlimited() {
+    console.log('startGameUnlimited called');
+    const startScreen = document.getElementById('start-screen');
+    const quizScreen = document.getElementById('quiz-screen');
+    
+    if (startScreen && quizScreen) {
+        startScreen.classList.add('hidden');
+        quizScreen.classList.remove('hidden');
+        generateQuiz(true);
+    } else {
+        console.error('Could not find start-screen or quiz-screen elements');
+    }
+}

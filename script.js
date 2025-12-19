@@ -47,6 +47,8 @@ function getFlagCodeFromUrl(flagUrl) {
 
 // Function to generate quiz questions
 function generateQuiz(unlimited = false) {
+    console.log('generateQuiz called with unlimited:', unlimited);
+    
     // Reset game variables
     quiz = [];
     currentQuestion = 0;
@@ -54,21 +56,34 @@ function generateQuiz(unlimited = false) {
     usedCountries = [];
     isUnlimitedMode = unlimited;
     
+    console.log('Game variables reset');
+    
     if (unlimited) {
         totalQuestions = Infinity;
-        document.getElementById('total-questions-display').textContent = '';
-        document.getElementById('end-game-btn').classList.remove('hidden');
+        const totalQuestionsDisplay = document.getElementById('total-questions-display');
+        const endGameBtn = document.getElementById('end-game-btn');
+        
+        if (totalQuestionsDisplay) totalQuestionsDisplay.textContent = '';
+        if (endGameBtn) endGameBtn.classList.remove('hidden');
+        
         // Generate first question only
         generateNextQuestion();
+        console.log('Unlimited mode setup complete');
     } else {
         totalQuestions = 25;
-        document.getElementById('total-questions-display').textContent = '/25';
-        document.getElementById('end-game-btn').classList.add('hidden');
+        const totalQuestionsDisplay = document.getElementById('total-questions-display');
+        const endGameBtn = document.getElementById('end-game-btn');
+        
+        if (totalQuestionsDisplay) totalQuestionsDisplay.textContent = '/25';
+        if (endGameBtn) endGameBtn.classList.add('hidden');
+        
         // Generate all 25 questions
         generateAllQuestions();
+        console.log('25 questions mode setup complete');
     }
 
     // Start the quiz
+    console.log('About to display first question');
     displayQuestion();
 }
 
@@ -350,20 +365,33 @@ document.addEventListener('DOMContentLoaded', function() {
     const endGameBtn = document.getElementById('end-game-btn');
     const showLoginBtn = document.getElementById('show-login-btn');
 
+    console.log('Game mode buttons found:', {
+        start25Btn: !!start25Btn,
+        startUnlimitedBtn: !!startUnlimitedBtn,
+        endGameBtn: !!endGameBtn,
+        showLoginBtn: !!showLoginBtn
+    });
+
     if (start25Btn) {
         start25Btn.addEventListener('click', () => {
+            console.log('25 Questions button clicked');
             startScreen.classList.add('hidden');
             quizScreen.classList.remove('hidden');
             generateQuiz(false); // 25 questions mode
         });
+    } else {
+        console.error('start-25-btn not found');
     }
 
     if (startUnlimitedBtn) {
         startUnlimitedBtn.addEventListener('click', () => {
+            console.log('Unlimited Mode button clicked');
             startScreen.classList.add('hidden');
             quizScreen.classList.remove('hidden');
             generateQuiz(true); // Unlimited mode
         });
+    } else {
+        console.error('start-unlimited-btn not found');
     }
 
     if (endGameBtn) {
