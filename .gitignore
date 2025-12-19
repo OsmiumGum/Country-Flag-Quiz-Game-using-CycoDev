@@ -2,12 +2,13 @@
 node_modules/
 npm-debug.log*
 
-# Environment variables
+# Environment variables & Local config
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+firebase-config-local.js
 
 # IDE files
 .vscode/
@@ -46,4 +47,5 @@ pids
 *-debug.log
 .runtimeconfig.json
 
-# Note: firebase-config.js is included in the repo but users should update it with their own keys
+# Note: firebase-config.js now contains template values only
+# Users should copy firebase-config-template.js to firebase-config-local.js with their actual keys

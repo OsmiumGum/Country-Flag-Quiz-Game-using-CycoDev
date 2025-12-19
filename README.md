@@ -50,13 +50,22 @@ A fun and interactive quiz game to test your knowledge of country flags around t
 2. **Set up Firebase (Free):**
    - Follow the detailed guide in [`FIREBASE_SETUP.md`](FIREBASE_SETUP.md)
    - Create a free Firebase project
-   - Update `firebase-config.js` with your configuration
+   - **Copy `firebase-config-template.js` to `firebase-config-local.js`**
+   - **Update `firebase-config-local.js` with your actual Firebase keys**
+   - **Never commit `firebase-config-local.js` to version control**
 
 3. **Run locally:**
    ```bash
    node server.js
    ```
    Then open `http://localhost:8080`
+
+## 🔒 Security Note
+
+This repository uses a template system for Firebase configuration:
+- `firebase-config.js` - Template with placeholder values (safe to commit)
+- `firebase-config-local.js` - Your actual keys (never commit, in .gitignore)
+- Users must create their own `firebase-config-local.js` with their Firebase project keys
 
 ## 💰 Cost
 
