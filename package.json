@@ -1,0 +1,15 @@
+{
+  "name": "flag-quiz-game",
+  "version": "1.0.0",
+  "description": "Enhanced flag quiz game with user accounts and statistics",
+  "main": "server.js",
+  "scripts": {
+    "build": "node build.js",
+    "dev": "node server.js",
+    "start": "node server.js"
+  },
+  "keywords": ["quiz", "flags", "geography", "firebase"],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {}
+}
