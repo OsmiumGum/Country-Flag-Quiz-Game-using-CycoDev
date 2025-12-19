@@ -15,6 +15,11 @@ const firebaseConfig = {
 // Check if Firebase config is still using template values
 const isTemplateConfig = firebaseConfig.apiKey === "your-api-key-here";
 
+console.log('🔧 Firebase Debug Info:');
+console.log('API Key:', firebaseConfig.apiKey);
+console.log('Is Template Config:', isTemplateConfig);
+console.log('Firebase Available:', typeof firebase !== 'undefined');
+
 if (isTemplateConfig) {
     console.warn('⚠️ Firebase is using template configuration. User accounts are disabled.');
     console.log('To enable user accounts and statistics:');
