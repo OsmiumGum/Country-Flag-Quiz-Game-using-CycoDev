@@ -8,6 +8,13 @@ class UserManager {
     }
 
     init() {
+        // Check if Firebase is properly configured
+        if (!window.isFirebaseConfigured) {
+            console.log('🎮 Demo mode: User accounts disabled');
+            this.showDemoMode();
+            return;
+        }
+        
         // Listen for authentication state changes
         auth.onAuthStateChanged((user) => {
             if (user) {
@@ -20,6 +27,25 @@ class UserManager {
                 this.showLoginAccess();
             }
         });
+    }
+
+    // Show demo mode (no authentication)
+    showDemoMode() {
+        document.getElementById('auth-screen').classList.add('hidden');
+        document.getElementById('start-screen').classList.remove('hidden');
+        document.getElementById('login-access').classList.add('hidden');
+        document.getElementById('user-info').classList.add('hidden');
+        
+        // Add demo mode notice
+        const startScreen = document.getElementById('start-screen');
+        const demoNotice = document.createElement('div');
+        demoNotice.className = 'demo-notice';
+        demoNotice.innerHTML = `
+            <p>🎮 <strong>Demo Mode</strong> - User accounts are disabled</p>
+            <p>Your scores won't be saved, but you can still play both game modes!</p>
+            <p><small>To enable accounts: Configure Firebase in firebase-config.js</small></p>
+        `;
+        startScreen.insertBefore(demoNotice, startScreen.firstChild);
     }
 
     // Register new user

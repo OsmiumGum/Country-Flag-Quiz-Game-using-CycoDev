@@ -211,6 +211,25 @@ button:hover {
     border: 1px solid #b3d9ff;
 }
 
+/* Demo Mode Notice */
+.demo-notice {
+    text-align: center;
+    padding: 15px;
+    background: #fff3cd;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid #ffeaa7;
+    border-left: 4px solid #fdcb6e;
+}
+
+.demo-notice strong {
+    color: #d68910;
+}
+
+.demo-notice small {
+    color: #856404;
+}
+
 .link-btn {
     background: none;
     color: #5b86e5;
