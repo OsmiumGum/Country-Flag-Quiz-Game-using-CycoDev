@@ -2,7 +2,7 @@
 const startScreen = document.getElementById('start-screen');
 const quizScreen = document.getElementById('quiz-screen');
 const resultsScreen = document.getElementById('results-screen');
-const startBtn = document.getElementById('start-btn');
+const authScreen = document.getElementById('auth-screen');
 const restartBtn = document.getElementById('restart-btn');
 const flagImage = document.getElementById('flag-image');
 const optionsContainer = document.getElementById('options-container');
@@ -17,7 +17,8 @@ let quiz = [];
 let currentQuestion = 0;
 let score = 0;
 let usedCountries = [];
-const totalQuestions = 25;
+let totalQuestions = 25;
+let isUnlimitedMode = false;
 
 // Function to shuffle an array
 function shuffleArray(array) {
@@ -38,18 +39,43 @@ function getRandomCountries(count) {
     return availableCountries.slice(0, count);
 }
 
+// Function to get country flag code from flag URL
+function getFlagCodeFromUrl(flagUrl) {
+    const match = flagUrl.match(/\/w320\/([a-z]{2})\.png$/);
+    return match ? match[1] : null;
+}
+
 // Function to generate quiz questions
-function generateQuiz() {
+function generateQuiz(unlimited = false) {
     // Reset game variables
     quiz = [];
     currentQuestion = 0;
     score = 0;
     usedCountries = [];
+    isUnlimitedMode = unlimited;
+    
+    if (unlimited) {
+        totalQuestions = Infinity;
+        document.getElementById('total-questions-display').textContent = '';
+        document.getElementById('end-game-btn').classList.remove('hidden');
+        // Generate first question only
+        generateNextQuestion();
+    } else {
+        totalQuestions = 25;
+        document.getElementById('total-questions-display').textContent = '/25';
+        document.getElementById('end-game-btn').classList.add('hidden');
+        // Generate all 25 questions
+        generateAllQuestions();
+    }
 
-    // Get 25 random countries for the quiz
+    // Start the quiz
+    displayQuestion();
+}
+
+// Generate all questions for limited mode
+function generateAllQuestions() {
     const quizCountries = getRandomCountries(totalQuestions);
 
-    // Create quiz questions
     for (let i = 0; i < totalQuestions; i++) {
         const correctAnswer = quizCountries[i];
         usedCountries.push(correctAnswer.name);
@@ -74,16 +100,65 @@ function generateQuiz() {
             options: options
         });
     }
+}
 
-    // Start the quiz
-    displayQuestion();
+// Function to generate the next question (for unlimited mode)
+function generateNextQuestion() {
+    // Get available countries (exclude recently used ones in unlimited mode)
+    let availableCountries = [...countries];
+    if (isUnlimitedMode && usedCountries.length > countries.length - 10) {
+        // Reset used countries if we've used most of them
+        usedCountries = usedCountries.slice(-5); // Keep only last 5
+    }
+    
+    // Remove recently used countries
+    availableCountries = availableCountries.filter(country => 
+        !usedCountries.slice(-10).includes(country.name)
+    );
+    
+    if (availableCountries.length === 0) {
+        availableCountries = [...countries]; // Fallback
+        usedCountries = [];
+    }
+
+    const correctAnswer = availableCountries[Math.floor(Math.random() * availableCountries.length)];
+    usedCountries.push(correctAnswer.name);
+
+    // Get three random incorrect options
+    let options = [correctAnswer.name];
+    let attemptCount = 0;
+    while (options.length < 4 && attemptCount < 50) {
+        const randomCountry = countries[Math.floor(Math.random() * countries.length)];
+        if (!options.includes(randomCountry.name)) {
+            options.push(randomCountry.name);
+        }
+        attemptCount++;
+    }
+
+    // Shuffle options
+    options = shuffleArray(options);
+
+    // Create question object
+    const question = {
+        flag: correctAnswer.flag,
+        correctAnswer: correctAnswer.name,
+        options: options
+    };
+
+    // Add to quiz (for unlimited, we keep generating)
+    quiz[currentQuestion] = question;
 }
 
 // Function to display the current question
 function displayQuestion() {
     // Update question number and progress bar
     currentQuestionSpan.textContent = currentQuestion + 1;
-    progressFill.style.width = `${((currentQuestion + 1) / totalQuestions) * 100}%`;
+    
+    if (isUnlimitedMode) {
+        progressFill.style.width = '100%'; // Full bar for unlimited
+    } else {
+        progressFill.style.width = `${((currentQuestion + 1) / totalQuestions) * 100}%`;
+    }
     
     // Get the current question
     const question = quiz[currentQuestion];
@@ -110,6 +185,15 @@ function selectOption(selectedOption) {
     // Get the current question and correct answer
     const question = quiz[currentQuestion];
     const correctAnswer = question.correctAnswer;
+    const isCorrect = selectedOption === correctAnswer;
+    
+    // Record the attempt for logged-in users
+    if (userManager.currentUser) {
+        const flagCode = getFlagCodeFromUrl(question.flag);
+        if (flagCode) {
+            userManager.recordFlagAttempt(correctAnswer, flagCode, isCorrect);
+        }
+    }
     
     // Disable all options
     const options = document.querySelectorAll('.option');
@@ -127,7 +211,7 @@ function selectOption(selectedOption) {
     });
     
     // Update score if correct
-    if (selectedOption === correctAnswer) {
+    if (isCorrect) {
         score++;
         scoreSpan.textContent = score;
     }
@@ -136,13 +220,24 @@ function selectOption(selectedOption) {
     setTimeout(() => {
         currentQuestion++;
         
-        // Check if quiz is complete
-        if (currentQuestion < totalQuestions) {
+        if (isUnlimitedMode) {
+            // Generate next question for unlimited mode
+            generateNextQuestion();
             displayQuestion();
         } else {
-            showResults();
+            // Check if quiz is complete for limited mode
+            if (currentQuestion < totalQuestions) {
+                displayQuestion();
+            } else {
+                showResults();
+            }
         }
     }, 1500);
+}
+
+// End game function (for unlimited mode)
+function endGame() {
+    showResults();
 }
 
 // Function to show results
@@ -152,43 +247,132 @@ function showResults() {
     resultsScreen.classList.remove('hidden');
     
     // Update final score
-    finalScoreSpan.textContent = score;
+    const questionsAnswered = isUnlimitedMode ? currentQuestion : totalQuestions;
+    finalScoreSpan.textContent = `${score}/${questionsAnswered}`;
+    
+    // Record game completion for logged-in users
+    if (userManager.currentUser) {
+        userManager.updateGameCompletion(score, questionsAnswered);
+    }
     
     // Display feedback message
     let feedbackText;
-    const percentage = (score / totalQuestions) * 100;
+    const percentage = (score / questionsAnswered) * 100;
     
-    if (percentage >= 90) {
-        feedbackText = "Outstanding! You're a geography expert!";
-    } else if (percentage >= 75) {
-        feedbackText = "Great job! You know your flags very well!";
-    } else if (percentage >= 50) {
-        feedbackText = "Good effort! You have a solid knowledge of world flags.";
-    } else if (percentage >= 25) {
-        feedbackText = "Not bad! With a bit more practice, you'll improve your score.";
+    if (isUnlimitedMode) {
+        feedbackText = `Great job! You answered ${questionsAnswered} questions with ${percentage.toFixed(1)}% accuracy!`;
     } else {
-        feedbackText = "Keep learning! Try again to improve your knowledge of world flags.";
+        if (percentage >= 90) {
+            feedbackText = "Outstanding! You're a geography expert!";
+        } else if (percentage >= 75) {
+            feedbackText = "Great job! You know your flags very well!";
+        } else if (percentage >= 50) {
+            feedbackText = "Good effort! You have a solid knowledge of world flags.";
+        } else if (percentage >= 25) {
+            feedbackText = "Not bad! With a bit more practice, you'll improve your score.";
+        } else {
+            feedbackText = "Keep learning! Try again to improve your knowledge of world flags.";
+        }
     }
     
     feedbackMessage.textContent = feedbackText;
 }
 
 // Event Listeners
-startBtn.addEventListener('click', () => {
-    startScreen.classList.remove('active');
-    startScreen.classList.add('hidden');
-    quizScreen.classList.remove('hidden');
-    generateQuiz();
-});
+// Note: Game mode buttons are handled in DOMContentLoaded event listener below
 
 restartBtn.addEventListener('click', () => {
     resultsScreen.classList.add('hidden');
-    quizScreen.classList.remove('hidden');
+    startScreen.classList.remove('hidden');
+    startScreen.classList.add('active');
     scoreSpan.textContent = '0';
-    generateQuiz();
 });
 
 // Handle image load errors
 flagImage.addEventListener('error', () => {
     flagImage.src = 'https://via.placeholder.com/320x160?text=Flag+Image+Not+Available';
+});
+
+// Authentication Event Listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // Auth tab switching
+    const loginTab = document.getElementById('login-tab');
+    const registerTab = document.getElementById('register-tab');
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+
+    if (loginTab) {
+        loginTab.addEventListener('click', () => {
+            loginTab.classList.add('active');
+            registerTab.classList.remove('active');
+            loginForm.classList.add('active');
+            registerForm.classList.remove('active');
+        });
+    }
+
+    if (registerTab) {
+        registerTab.addEventListener('click', () => {
+            registerTab.classList.add('active');
+            loginTab.classList.remove('active');
+            registerForm.classList.add('active');
+            loginForm.classList.remove('active');
+        });
+    }
+
+    // Login form submission
+    const loginFormElement = document.getElementById('login-form-element');
+    if (loginFormElement) {
+        loginFormElement.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            await userManager.login(email, password);
+        });
+    }
+
+    // Register form submission
+    const registerFormElement = document.getElementById('register-form-element');
+    if (registerFormElement) {
+        registerFormElement.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('register-username').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            
+            await userManager.register(email, password, username);
+        });
+    }
+
+    // Game mode buttons
+    const start25Btn = document.getElementById('start-25-btn');
+    const startUnlimitedBtn = document.getElementById('start-unlimited-btn');
+    const endGameBtn = document.getElementById('end-game-btn');
+    const showLoginBtn = document.getElementById('show-login-btn');
+
+    if (start25Btn) {
+        start25Btn.addEventListener('click', () => {
+            startScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            generateQuiz(false); // 25 questions mode
+        });
+    }
+
+    if (startUnlimitedBtn) {
+        startUnlimitedBtn.addEventListener('click', () => {
+            startScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            generateQuiz(true); // Unlimited mode
+        });
+    }
+
+    if (endGameBtn) {
+        endGameBtn.addEventListener('click', endGame);
+    }
+
+    if (showLoginBtn) {
+        showLoginBtn.addEventListener('click', () => {
+            userManager.showAuthScreen();
+        });
+    }
 });

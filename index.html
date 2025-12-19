@@ -6,27 +6,89 @@
     <title>Country Flag Quiz</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
     <div class="container">
         <div class="quiz-wrapper">
             <h1>Country Flag Quiz</h1>
             
+            <!-- Authentication Screen -->
+            <div id="auth-screen" class="hidden">
+                <div class="auth-container">
+                    <div class="auth-tabs">
+                        <button id="login-tab" class="auth-tab active">Login</button>
+                        <button id="register-tab" class="auth-tab">Register</button>
+                    </div>
+
+                    <!-- Login Form -->
+                    <div id="login-form" class="auth-form active">
+                        <h3>Login to Your Account</h3>
+                        <p>Track your progress and see which flags you've mastered!</p>
+                        <form id="login-form-element">
+                            <div class="input-group">
+                                <input type="email" id="login-email" placeholder="Email" required>
+                            </div>
+                            <div class="input-group">
+                                <input type="password" id="login-password" placeholder="Password" required>
+                            </div>
+                            <button type="submit" class="auth-btn">Login</button>
+                        </form>
+                    </div>
+
+                    <!-- Register Form -->
+                    <div id="register-form" class="auth-form">
+                        <h3>Create New Account</h3>
+                        <p>Join to track your flag knowledge and see your improvement!</p>
+                        <form id="register-form-element">
+                            <div class="input-group">
+                                <input type="text" id="register-username" placeholder="Username" required>
+                            </div>
+                            <div class="input-group">
+                                <input type="email" id="register-email" placeholder="Email" required>
+                            </div>
+                            <div class="input-group">
+                                <input type="password" id="register-password" placeholder="Password (min 6 characters)" required minlength="6">
+                            </div>
+                            <button type="submit" class="auth-btn">Create Account</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Info Bar (shown when logged in) -->
+            <div id="user-info" class="user-info hidden"></div>
+            
+            <!-- Login/Logout access for non-logged in users -->
+            <div id="login-access" class="login-access hidden">
+                <p>Want to track your progress? <button id="show-login-btn" class="link-btn">Login or Create Account</button></p>
+            </div>
+            
             <div id="start-screen" class="active">
                 <p>Test your knowledge of country flags around the world!</p>
-                <p>You'll be presented with 25 flags and need to choose the correct country from four options.</p>
-                <button id="start-btn">Start Quiz</button>
+                <p>Choose your game mode:</p>
+                <div class="game-mode-selection">
+                    <button id="start-25-btn" class="game-mode-btn">25 Questions</button>
+                    <button id="start-unlimited-btn" class="game-mode-btn">Unlimited Mode</button>
+                </div>
             </div>
 
             <div id="quiz-screen" class="hidden">
                 <div class="progress-container">
-                    <div class="progress-text">Question <span id="current-question">1</span>/25</div>
+                    <div class="progress-text">Question <span id="current-question">1</span><span id="total-questions-display">/25</span></div>
                     <div class="progress-bar">
                         <div id="progress-fill"></div>
                     </div>
                 </div>
 
-                <div id="score-display">Score: <span id="score">0</span></div>
+                <div class="quiz-controls">
+                    <div id="score-display">Score: <span id="score">0</span></div>
+                    <button id="end-game-btn" class="end-game-btn hidden">End Game</button>
+                </div>
 
                 <div class="flag-container">
                     <img id="flag-image" src="" alt="Country flag">
@@ -47,10 +109,28 @@
                 <div id="feedback-message"></div>
                 <button id="restart-btn">Play Again</button>
             </div>
+
+            <!-- Simple Profile Modal -->
+            <div id="profile-modal" class="modal hidden">
+                <div class="modal-overlay" onclick="closeSimpleProfile()"></div>
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Your Statistics</h2>
+                        <button onclick="closeSimpleProfile()" class="modal-close">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="simple-profile-stats">
+                            <!-- Statistics will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script src="countries.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="user-manager.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
